@@ -1,0 +1,9 @@
+﻿services: 
+  postgres:
+    ports:
+      - "5432:5432"
+    image: "postgres"
+    environment:
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_USER: "stockbot"
+      POSTGRES_DB: "stockbot"
