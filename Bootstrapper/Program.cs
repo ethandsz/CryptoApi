@@ -1,7 +1,6 @@
 ﻿using Bootstrapper;
 using Bootstrapper.PostgresBootstrap;
 using Microsoft.Extensions.Hosting;
-using Npgsql;
 
 using var host = Host
     .CreateDefaultBuilder(args)

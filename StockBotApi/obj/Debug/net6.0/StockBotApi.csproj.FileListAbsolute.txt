@@ -30,3 +30,8 @@ C:\Users\Ethan\source\repos\StockApi\StockBotApi\obj\Debug\net6.0\refint\StockBo
 C:\Users\Ethan\source\repos\StockApi\StockBotApi\obj\Debug\net6.0\StockBotApi.pdb
 C:\Users\Ethan\source\repos\StockApi\StockBotApi\obj\Debug\net6.0\StockBotApi.genruntimeconfig.cache
 C:\Users\Ethan\source\repos\StockApi\StockBotApi\obj\Debug\net6.0\ref\StockBotApi.dll
+C:\Users\Ethan\source\repos\StockApi\StockBotApi\bin\Debug\net6.0\Bybit.Net.dll
+C:\Users\Ethan\source\repos\StockApi\StockBotApi\bin\Debug\net6.0\CryptoExchange.Net.dll
+C:\Users\Ethan\source\repos\StockApi\StockBotApi\bin\Debug\net6.0\Newtonsoft.Json.dll
+C:\Users\Ethan\source\repos\StockApi\StockBotApi\bin\Debug\net6.0\StockBotInfrastructure.dll
+C:\Users\Ethan\source\repos\StockApi\StockBotApi\bin\Debug\net6.0\StockBotInfrastructure.pdb

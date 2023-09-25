@@ -1,5 +1,5 @@
 ﻿CREATE TABLE sticks (
     ticker text NOT NULL primary key,
-    buy_levels mediumint[],
-    sell_levels mediumint[]
+    buy_levels integer[],
+    sell_levels integer[]
 );

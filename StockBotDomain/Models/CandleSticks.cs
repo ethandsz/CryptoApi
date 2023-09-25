@@ -7,7 +7,7 @@ public record CandleSticks
     [JsonPropertyName("t")]
     public Int64 TimeStamp { get; set; }
     [JsonPropertyName("s")]
-    public string Ticker { get; set; }
+    public string? Ticker { get; set; }
     [JsonPropertyName("c")]
     public double Close { get; set; }
     [JsonPropertyName("h")]
