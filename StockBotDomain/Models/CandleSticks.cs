@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace StockBotDomain;
+namespace StockBotDomain.Models;
 
 public record CandleSticks
 {
