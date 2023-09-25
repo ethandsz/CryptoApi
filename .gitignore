@@ -400,3 +400,6 @@ FodyWeavers.xsd
 *.cache
 StockBotInfrastructure/obj/project.packagespec.json
 *.info
+*.targets
+*.props
+*.cache
