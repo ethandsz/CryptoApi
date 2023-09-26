@@ -17,6 +17,5 @@ public class SearchSticksService : ISearchSticksService
         var client = new SetupExchangeClient(ClientConfiguration).BybitRestClient;
         var sticks = await client.V5Api.ExchangeData.GetKlinesAsync(Category.Spot, ClientConfiguration.Symbol,
                 KlineInterval.OneMinute);
-        
     }
 }
