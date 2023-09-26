@@ -17,15 +17,17 @@ public class Startup
         serviceCollection.AddControllers();
         serviceCollection.AddAuthorization();
         serviceCollection.AddSwaggerGen();
-        ConfigureStickService();
+        ConfigureStickService(serviceCollection);
     }
 
-    private void ConfigureStickService()
+    private void ConfigureStickService(IServiceCollection serviceCollection)
     {
         var config = new ConfigurationBuilder().AddUserSecrets<Startup>().Build();
-
+        
+        // Can currently only have one of these at a time, need to refactor SearchSticksService to allow for multiple
         var byBitBtcUsdt = config.GetSection("ByBitBTCUSDT").Get<ClientConfiguration>();
-        var stickService = new SearchSticksService(byBitBtcUsdt).Search();
+        var stickServiceBtcUsdt = new SearchSticksService(byBitBtcUsdt);
+        serviceCollection.AddSingleton<ISearchSticksService>(stickServiceBtcUsdt);
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

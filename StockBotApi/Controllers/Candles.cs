@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using StockBotInfrastructure;
 
 namespace StockApi.Controllers;
 
@@ -6,9 +7,17 @@ namespace StockApi.Controllers;
 [Route("api/[controller]")]
 public class Candles : ControllerBase
 {
-    [HttpGet]
-    public string GetStick()
+    private readonly ISearchSticksService _searchSticksService;
+
+    public Candles(ISearchSticksService searchSticksService)
     {
+        _searchSticksService = searchSticksService;
+    }
+
+    [HttpGet]
+    public async Task<string> GetStick()
+    {
+        await _searchSticksService.Search();
         return "This is where we return a stick level";
     }
 }

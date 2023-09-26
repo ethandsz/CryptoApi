@@ -3,7 +3,7 @@ using StockBotDomain.Models;
 
 namespace StockBotInfrastructure;
 
-public class SearchSticksService
+public class SearchSticksService : ISearchSticksService
 {
     public SearchSticksService(ClientConfiguration clientConfiguration)
     {
@@ -15,10 +15,8 @@ public class SearchSticksService
     public async Task Search()
     {
         var client = new SetupExchangeClient(ClientConfiguration).BybitRestClient;
-        while (true)
-        {
-            var sticks = await client.V5Api.ExchangeData.GetKlinesAsync(Category.Spot, ClientConfiguration.Symbol,
+        var sticks = await client.V5Api.ExchangeData.GetKlinesAsync(Category.Spot, ClientConfiguration.Symbol,
                 KlineInterval.OneMinute);
-        }
+        
     }
 }
