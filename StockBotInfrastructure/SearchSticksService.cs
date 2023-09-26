@@ -1,14 +1,24 @@
 ﻿using Bybit.Net.Enums;
-using StockBotInfrastructure.Models;
+using StockBotDomain.Models;
 
 namespace StockBotInfrastructure;
 
 public class SearchSticksService
 {
-    public async Task Searcher()
+    public SearchSticksService(ClientConfiguration clientConfiguration)
     {
-        var clientConfig = new ClientConfiguration("IHl49Ahviqrfpav2h9", "xtBb713kO2skiaaVEOupPAtI10TDGktY0VwF");
-        var client = new SetupExchangeClient(clientConfig).BybitRestClient;
-        var sticks = await client.V5Api.ExchangeData.GetKlinesAsync(Category.Spot, "BTCUSDT", KlineInterval.OneMinute);
+        ClientConfiguration = clientConfiguration;
+    }
+    
+    private ClientConfiguration ClientConfiguration { get; }
+    
+    public async Task Search()
+    {
+        var client = new SetupExchangeClient(ClientConfiguration).BybitRestClient;
+        while (true)
+        {
+            var sticks = await client.V5Api.ExchangeData.GetKlinesAsync(Category.Spot, ClientConfiguration.Symbol,
+                KlineInterval.OneMinute);
+        }
     }
 }

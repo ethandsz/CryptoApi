@@ -1,4 +1,5 @@
-﻿using StockBotInfrastructure;
+﻿using StockBotDomain.Models;
+using StockBotInfrastructure;
 
 namespace StockApi;
 
@@ -10,7 +11,6 @@ public class Startup
     }
     
     public IConfiguration Configuration { get; }
-
     public void ConfigureServices(IServiceCollection serviceCollection)
     {
         // Add services to the container.
@@ -22,7 +22,10 @@ public class Startup
 
     private void ConfigureStickService()
     {
-        var stickService = new SearchSticksService().Searcher();
+        var config = new ConfigurationBuilder().AddUserSecrets<Startup>().Build();
+
+        var byBitBtcUsdt = config.GetSection("ByBitBTCUSDT").Get<ClientConfiguration>();
+        var stickService = new SearchSticksService(byBitBtcUsdt).Search();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

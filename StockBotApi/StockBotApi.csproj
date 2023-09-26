@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>StockApi</RootNamespace>
+    <UserSecretsId>e795752b-ff82-4b0f-80ee-2e0604d88230</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

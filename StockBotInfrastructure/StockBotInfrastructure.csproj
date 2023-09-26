@@ -14,4 +14,8 @@
       <ProjectReference Include="..\StockBotDomain\StockBotDomain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Models" />
+    </ItemGroup>
+
 </Project>

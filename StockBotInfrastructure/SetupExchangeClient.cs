@@ -1,6 +1,6 @@
 ﻿using Bybit.Net.Clients;
 using CryptoExchange.Net.Authentication;
-using StockBotInfrastructure.Models;
+using StockBotDomain.Models;
 
 namespace StockBotInfrastructure;
 
