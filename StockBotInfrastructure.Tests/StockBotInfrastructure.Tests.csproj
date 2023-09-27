@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>StockBotInfrastructure.Tests</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Bybit.Net" Version="3.1.1" />
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+      <PackageReference Include="NSubstitute" Version="5.1.0" />
+      <PackageReference Include="NUnit" Version="3.13.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\StockBotDomain\StockBotDomain.csproj" />
+      <ProjectReference Include="..\StockBotInfrastructure\StockBotInfrastructure.csproj" />
+    </ItemGroup>
+
+</Project>

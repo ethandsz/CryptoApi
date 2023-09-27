@@ -20,7 +20,8 @@ public class Startup
         
         // Can currently only have one of these at a time, need to refactor SearchSticksService to allow for multiple
         var byBitBtcUsdt = config.GetSection("ByBitBTCUSDT").Get<ClientConfiguration>();
-        var stickServiceBtcUsdt = new SearchSticksService(byBitBtcUsdt);
+        var client = new SetupExchangeClient().SetupByBitClient(byBitBtcUsdt);
+        var stickServiceBtcUsdt = new SearchSticksService(client);
         serviceCollection.AddSingleton<ISearchSticksService>(stickServiceBtcUsdt);
     }
 
