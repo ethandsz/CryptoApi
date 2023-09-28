@@ -7,11 +7,11 @@ namespace StockBotInfrastructure.Maps;
 [Mapper]
 public partial class ByBitStickMapper
 {
-    [MapProperty(nameof(BybitKline.HighPrice), nameof(CandleSticks.High))]
-    [MapProperty(nameof(BybitKline.LowPrice), nameof(CandleSticks.Low))]
-    [MapProperty(nameof(BybitKline.ClosePrice), nameof(CandleSticks.Close))]
-    [MapProperty(nameof(BybitKline.OpenPrice), nameof(CandleSticks.Open))]
-    [MapProperty(nameof(@BybitKline.StartTime.Ticks), nameof(CandleSticks.TimeStamp))]
-    public partial CandleSticks Map(BybitKline bybitKline);
+    [MapProperty(nameof(BybitKline.HighPrice), nameof(CandleStick.High))]
+    [MapProperty(nameof(BybitKline.LowPrice), nameof(CandleStick.Low))]
+    [MapProperty(nameof(BybitKline.ClosePrice), nameof(CandleStick.Close))]
+    [MapProperty(nameof(BybitKline.OpenPrice), nameof(CandleStick.Open))]
+    [MapProperty(nameof(@BybitKline.StartTime.Ticks), nameof(CandleStick.TimeStamp))]
+    public partial CandleStick Map(BybitKline bybitKline);
 }
 

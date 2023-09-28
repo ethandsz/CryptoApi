@@ -4,22 +4,22 @@ namespace StockBotInfrastructure.Repositories;
 
 public class StickRepository : IStickRepository
 {
-    public void AddBuyLevels(CandleSticks[] candleSticks)
+    public void AddBuyLevels(CandleStick[] candleSticks)
     {
         throw new NotImplementedException();
     }
 
-    public void AddSellLevels(CandleSticks[] candleSticks)
+    public void AddSellLevels(CandleStick[] candleSticks)
     {
         throw new NotImplementedException();
     }
 
-    public CandleSticks[] GetBuyLevels()
+    public CandleStick[] GetBuyLevels()
     {
         throw new NotImplementedException();
     }
 
-    public CandleSticks[] GetSellLevels()
+    public CandleStick[] GetSellLevels()
     {
         throw new NotImplementedException();
     }

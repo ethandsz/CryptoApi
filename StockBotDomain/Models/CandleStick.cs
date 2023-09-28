@@ -1,6 +1,6 @@
 ﻿namespace StockBotDomain.Models;
 
-public record CandleSticks
+public record CandleStick
 {
     public long TimeStamp { get; set; }
     public string? Ticker { get; set; }
