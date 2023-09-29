@@ -2,6 +2,7 @@
 using Bybit.Net.Enums;
 using StockBotDomain.Models;
 using StockBotInfrastructure.Maps;
+using StockBotInfrastructure.Repositories;
 
 namespace StockBotInfrastructure;
 
@@ -11,10 +12,12 @@ public class SearchSticksService : ISearchSticksService
     {
         BybitRestClient = bybitRestClient;
         ByBitStickMapper = new ByBitStickMapper();
+        StickRepository = new StickRepository();
     }
 
     private BybitRestClient BybitRestClient { get; }
     private ByBitStickMapper ByBitStickMapper { get; }
+    private IStickRepository StickRepository { get; }
 
     public async Task Search()
     {
@@ -24,6 +27,7 @@ public class SearchSticksService : ISearchSticksService
         var sticks = result.Data.List.Select(kline => ByBitStickMapper.Map(kline));
         var holdLevels = IdentifyHighLevelHoldLevels(sticks.ToList());
         var levels = await ConvertHighLevelHoldLevels(holdLevels);
+        StickRepository.AddLevels(levels);
     }
     
     private List<HoldLevel> IdentifyHighLevelHoldLevels(List<CandleStick> sticks)
