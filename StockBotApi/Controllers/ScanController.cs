@@ -1,23 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using StockBotInfrastructure;
+using StockBotInfrastructure.Services;
 
 namespace StockApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class Candles : ControllerBase
+public class ScanController : ControllerBase
 {
     private readonly ISearchSticksService _searchSticksService;
 
-    public Candles(ISearchSticksService searchSticksService)
+    public ScanController(ISearchSticksService searchSticksService)
     {
         _searchSticksService = searchSticksService;
     }
 
-    [HttpGet]
-    public async Task<string> GetStick()
+    [HttpGet("start")]
+    public async Task<string> StartService()
     {
         await _searchSticksService.Search();
-        return "This is where we return a stick level";
+        return "Finished";
     }
 }

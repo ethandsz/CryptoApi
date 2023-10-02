@@ -1,5 +1,6 @@
 ﻿using StockBotDomain.Models;
 using StockBotInfrastructure;
+using StockBotInfrastructure.Services;
 
 namespace StockApi;
 

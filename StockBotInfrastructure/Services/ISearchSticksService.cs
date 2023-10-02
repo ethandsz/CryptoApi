@@ -1,4 +1,4 @@
-﻿namespace StockBotInfrastructure;
+﻿namespace StockBotInfrastructure.Services;
 
 public interface ISearchSticksService
 {
