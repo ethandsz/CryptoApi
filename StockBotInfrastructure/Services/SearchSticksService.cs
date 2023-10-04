@@ -3,6 +3,8 @@ using Bybit.Net.Enums;
 using StockBotDomain.Models;
 using StockBotInfrastructure.Maps;
 using StockBotInfrastructure.Repositories;
+using static StockBotInfrastructure.Helpers.GetKlineInterval;
+using static StockBotInfrastructure.Helpers.TimeIntervalConverter;
 
 namespace StockBotInfrastructure.Services;
 
@@ -19,17 +21,22 @@ public class SearchSticksService : ISearchSticksService
     private ByBitStickMapper ByBitStickMapper { get; }
     private IStickRepository StickRepository { get; }
 
-    public async Task Search()
+    public async Task Search(string timeInterval)
     {
         Console.WriteLine("Requesting sticks");
+        var klineInterval = ConvertStrToKlineInterval(timeInterval);
+        var milliseconds = TimeIntervalToMilliseconds(timeInterval);
+        var currentTime = DateTime.UtcNow;
         var result = await BybitRestClient.V5Api.ExchangeData.GetKlinesAsync(Category.Spot, "BTCUSDT",
-            KlineInterval.FiveMinutes, limit: 250);
+            klineInterval, endTime: new DateTime(currentTime.Ticks - milliseconds * 10), limit: 250);
         var sticks = result.Data.List.Select(kline => ByBitStickMapper.Map(kline));
         var holdLevels = IdentifyHighLevelHoldLevels(sticks.ToList());
-        var levels = await ConvertHighLevelHoldLevels(holdLevels);
+        var levels = await ConvertHighLevelHoldLevels(holdLevels, milliseconds);
         StickRepository.AddLevels(levels);
     }
     
+    
+    //todo: Move this logic to domain layer
     private List<HoldLevel> IdentifyHighLevelHoldLevels(List<CandleStick> sticks)
     {
         List<CandleStick> possibleHoldLevelSticks = new List<CandleStick>();
@@ -67,9 +74,9 @@ public class SearchSticksService : ISearchSticksService
         return holdLevels;
     }
    
-    private async Task<List<HoldLevel>> ConvertHighLevelHoldLevels(List<HoldLevel> highLevels)
+    private async Task<List<HoldLevel>> ConvertHighLevelHoldLevels(List<HoldLevel> highLevels, int milliSeconds)
     {
-        var milliSeconds = 300000; //Using 4hr interval
+        //var milliSeconds = 300000; //Using 4hr interval
         var holdLevels = new List<HoldLevel>();
         var currentTime = DateTime.UtcNow;
         var numOfLevels = highLevels.Count;
@@ -85,14 +92,17 @@ public class SearchSticksService : ISearchSticksService
                 
                 var result = await BybitRestClient.V5Api.ExchangeData.GetKlinesAsync(Category.Spot, "BTCUSDT",
                     KlineInterval.FiveMinutes, startTime: new DateTime(ticks: startTime), endTime: currentTime, limit: 1000);
-                
-                startTime += result.Data.List.FirstOrDefault().StartTime.Ticks + milliSeconds;
+                if (result.Data.List.FirstOrDefault() is null)
+                {
+                    break;
+                }
+                startTime += result.Data.List.FirstOrDefault()!.StartTime.Ticks + milliSeconds;
                 sticks.AddRange(result.Data.List.Select(k => ByBitStickMapper.Map(k)));
             }
             
             var sticksToTestForInverseLevel = sticks.Where(s => s.High > holdLevel.Level && s.Low < holdLevel.Level && s.TimeStamp > holdLevel.TimeStamp).ToList();
                     
-            if (!await IsTested(sticksToTestForInverseLevel, holdLevel))
+            if (!await IsTested(sticksToTestForInverseLevel, holdLevel, milliSeconds))
             {
                 holdLevels.Add(holdLevel);
             }
@@ -102,9 +112,9 @@ public class SearchSticksService : ISearchSticksService
         }
         return holdLevels;
     }
-    private async Task<bool> IsTested(List<CandleStick> candleSticks, HoldLevel holdLevel)
+    private async Task<bool> IsTested(List<CandleStick> candleSticks, HoldLevel holdLevel, long milliseconds)
     {   
-        long milliseconds = 300000;
+        //long milliseconds = 300000;
         if (candleSticks.Count == 0)
         {
             return true;
@@ -115,7 +125,7 @@ public class SearchSticksService : ISearchSticksService
             //     (candleStick.TimeStamp + timeInterval.ConvertToMillis()).ToString());
             //
             var result = await BybitRestClient.V5Api.ExchangeData.GetKlinesAsync(Category.Spot, "BTCUSDT",
-                KlineInterval.OneMinute, startTime: new DateTime(ticks: candleStick.TimeStamp), endTime: new DateTime(candleStick.TimeStamp + (milliseconds * 10000)), limit: 1000);
+                KlineInterval.OneMinute, startTime: new DateTime(ticks: candleStick.TimeStamp), endTime: new DateTime(candleStick.TimeStamp + milliseconds * 10000), limit: 1000);
             var sticks = result.Data.List.Select(k => ByBitStickMapper.Map(k));
             var possibleSticks = sticks.Where(w => w.IsBullish == holdLevel.IsInverse);
 

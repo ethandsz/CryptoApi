@@ -15,9 +15,9 @@ public class ScanController : ControllerBase
     }
 
     [HttpGet("start")]
-    public async Task<string> StartService()
+    public async Task<string> StartService(string timeInterval)
     {
-        await _searchSticksService.Search();
+        await _searchSticksService.Search(timeInterval);
         return "Finished";
     }
 }

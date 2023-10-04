@@ -2,5 +2,5 @@
 
 public interface ISearchSticksService
 {
-    public Task Search();
+    public Task Search(string timeInterval);
 }

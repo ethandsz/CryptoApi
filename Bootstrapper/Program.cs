@@ -8,7 +8,7 @@ using var host = Host
 
 var postgresOptions = new PostgresOptions
 {
-    ConnectionString = "Server=127.0.0.1;Port=5432;User id=stockbot;Password=password;Database=stockbot"
+    ConnectionString = "Server=127.0.0.1;Port=5432;User id=stockbot;Password=password;Database=stockbot" //todo: Move to config
 };
 
 var isSuccessful =  Bootstrap.Run(postgresOptions);
