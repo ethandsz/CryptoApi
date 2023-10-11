@@ -1,4 +1,5 @@
-﻿using Bybit.Net.Clients;
+﻿using System.Numerics;
+using Bybit.Net.Clients;
 using Bybit.Net.Enums;
 using StockBotDomain.Models;
 using StockBotInfrastructure.Maps;
@@ -20,19 +21,22 @@ public class SearchSticksService : ISearchSticksService
     private BybitRestClient BybitRestClient { get; }
     private ByBitStickMapper ByBitStickMapper { get; }
     private IStickRepository StickRepository { get; }
+    
+    private List<HoldLevel> _levels = new();
 
     public async Task Search(string timeInterval)
     {
+        _levels.Clear();
         Console.WriteLine("Requesting sticks");
         var klineInterval = ConvertStrToKlineInterval(timeInterval);
         var milliseconds = TimeIntervalToMilliseconds(timeInterval);
         var currentTime = DateTime.UtcNow;
         var result = await BybitRestClient.V5Api.ExchangeData.GetKlinesAsync(Category.Spot, "BTCUSDT",
-            klineInterval, endTime: new DateTime(currentTime.Ticks - milliseconds * 10), limit: 250);
+            klineInterval, endTime: new DateTime(currentTime.Ticks - milliseconds * 10), limit: 20);
         var sticks = result.Data.List.Select(kline => ByBitStickMapper.Map(kline));
         var holdLevels = IdentifyHighLevelHoldLevels(sticks.ToList());
-        var levels = await ConvertHighLevelHoldLevels(holdLevels, milliseconds);
-        StickRepository.AddLevels(levels);
+        await FindAndAddLevels(holdLevels, milliseconds, klineInterval);
+        StickRepository.AddLevels(_levels);
     }
     
     
@@ -74,95 +78,83 @@ public class SearchSticksService : ISearchSticksService
         return holdLevels;
     }
    
-    private async Task<List<HoldLevel>> ConvertHighLevelHoldLevels(List<HoldLevel> highLevels, int milliSeconds)
+    private async Task FindAndAddLevels(List<HoldLevel> highLevels, int milliSeconds, KlineInterval klineInterval)
     {
-        //var milliSeconds = 300000; //Using 4hr interval
-        var holdLevels = new List<HoldLevel>();
         var currentTime = DateTime.UtcNow;
-        var numOfLevels = highLevels.Count;
+        BigInteger milli = milliSeconds;
+
         foreach (var holdLevel in highLevels)
         {
             var startTime = holdLevel.TimeStamp;
             var sticks = new List<CandleStick>();
             while (startTime < currentTime.Ticks)
             {
-                // var requestedSticks =
-                //     await _httpRequester.RequestSticksWithTimeLimit(timeInterval, startTime.ToString(),
-                //         currentTime.ToString());
-                
                 var result = await BybitRestClient.V5Api.ExchangeData.GetKlinesAsync(Category.Spot, "BTCUSDT",
-                    KlineInterval.FiveMinutes, startTime: new DateTime(ticks: startTime), endTime: currentTime, limit: 1000);
+                    klineInterval, startTime: new DateTime(ticks: startTime), limit: 1000);
                 if (result.Data.List.FirstOrDefault() is null)
                 {
                     break;
                 }
-                startTime += result.Data.List.FirstOrDefault()!.StartTime.Ticks + milliSeconds;
+
+                startTime = (long)(result.Data.List.FirstOrDefault()!.StartTime.Ticks + milli * 10000);
                 sticks.AddRange(result.Data.List.Select(k => ByBitStickMapper.Map(k)));
             }
             
-            var sticksToTestForInverseLevel = sticks.Where(s => s.High > holdLevel.Level && s.Low < holdLevel.Level && s.TimeStamp > holdLevel.TimeStamp).ToList();
+            var sticksToTestForInverseLevel = sticks.Where(s => s.High > holdLevel.Level * .9999 && s.Low < holdLevel.Level * 1.0001 && s.TimeStamp > holdLevel.TimeStamp).ToList();
                     
             if (!await IsTested(sticksToTestForInverseLevel, holdLevel, milliSeconds))
             {
-                holdLevels.Add(holdLevel);
+                _levels.Add(holdLevel);
             }
-
-            numOfLevels--;
-            Console.WriteLine($"Progress: {100 * (double)(highLevels.Count - numOfLevels) / highLevels.Count}");
         }
-        return holdLevels;
     }
     private async Task<bool> IsTested(List<CandleStick> candleSticks, HoldLevel holdLevel, long milliseconds)
     {   
-        //long milliseconds = 300000;
         if (candleSticks.Count == 0)
         {
             return true;
         }
         foreach (var candleStick in candleSticks)
         {
-            // var response = await _httpRequester.RequestSticksWithTimeLimit("1m", candleStick.TimeStamp.ToString(),
-            //     (candleStick.TimeStamp + timeInterval.ConvertToMillis()).ToString());
-            //
             var result = await BybitRestClient.V5Api.ExchangeData.GetKlinesAsync(Category.Spot, "BTCUSDT",
                 KlineInterval.OneMinute, startTime: new DateTime(ticks: candleStick.TimeStamp), endTime: new DateTime(candleStick.TimeStamp + milliseconds * 10000), limit: 1000);
             var sticks = result.Data.List.Select(k => ByBitStickMapper.Map(k));
-            var possibleSticks = sticks.Where(w => w.IsBullish == holdLevel.IsInverse);
+            var possibleSticks = sticks.Where(s => s.IsBullish == holdLevel.IsInverse);
 
             if (holdLevel.IsInverse)
             {
                 if(possibleSticks.Any(s => s.High > holdLevel.Level * .9999))
                 {
+                    if(milliseconds == 60000)
+                    {
+                        return true;
+                    }
+                    var testedSticks = possibleSticks.Where(s => s.High > holdLevel.Level * .9999);
+                    var sticksToTestInRange = await BybitRestClient.V5Api.ExchangeData.GetKlinesAsync(Category.Spot, "BTCUSDT",
+                        KlineInterval.OneMinute, new DateTime(ticks: holdLevel.TimeStamp), new DateTime(ticks: testedSticks.Max(s => s.TimeStamp)));
+                    var sticksInRange = sticksToTestInRange.Data.List.Select(k => ByBitStickMapper.Map(k)).ToList();
+                    var holdLevels = IdentifyHighLevelHoldLevels(sticksInRange).Where(h => h.IsInverse).ToList();
+                    await FindAndAddLevels(holdLevels, 60000, KlineInterval.OneMinute);
                     return true;
                 }
-                // var firstNonBullishClosedBody = possibleSticks.Where(p => p.Open < holdLevel.Level).FirstOrDefault();
-                // if (firstNonBullishClosedBody is not null)
-                // {
-                //     // possibleSticks = sticks.Where(s => s.TimeStamp > firstNonBullishClosedBody.TimeStamp);
-                //     // possibleSticks = possibleSticks.Where(w => w.IsBullish == holdLevel.IsInverse);
-                //     if (possibleSticks.Any(p => p.High > holdLevel.Level * .9999))
-                //     {
-                //         return true;
-                //     }
-                // }
             }
             if (!holdLevel.IsInverse)
             {
                 if(possibleSticks.Any(s => s.Low < holdLevel.Level * 1.0001))
                 {
+                    if(milliseconds == 60000)
+                    {
+                        return true;
+                    }
+                    var testedSticks = possibleSticks.Where(s => s.Low < holdLevel.Level * 1.0001);
+                    var sticksToTestInRange = await BybitRestClient.V5Api.ExchangeData.GetKlinesAsync(Category.Spot, "BTCUSDT",
+                        KlineInterval.OneMinute, new DateTime(ticks: holdLevel.TimeStamp), new DateTime(ticks: testedSticks.Max(s => s.TimeStamp)));
+                    var sticksInRange = sticksToTestInRange.Data.List.Select(k => ByBitStickMapper.Map(k)).ToList();
+                    var holdLevels = IdentifyHighLevelHoldLevels(sticksInRange).Where(h => !h.IsInverse).ToList();
+                    await FindAndAddLevels(holdLevels, 60000, KlineInterval.OneMinute);
                     return true;
                 }
             }
-            // var firstBullishClosedBody = possibleSticks.Where(p => p.Open > holdLevel.Level).FirstOrDefault();
-            // if (firstBullishClosedBody is not null)
-            // {
-            //     possibleSticks = sticks.Where(s => s.TimeStamp > firstBullishClosedBody.TimeStamp);
-            //     possibleSticks = possibleSticks.Where(w => w.IsBullish == holdLevel.IsInverse);
-            //     if (possibleSticks.Any(p => p.Low < holdLevel.Level * 1.0001))
-            //     {
-            //         return true;
-            //     }
-            // }
         }
         return false;
     }
